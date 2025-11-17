@@ -71,7 +71,7 @@ export default function UploadForm() {
         {/* Applicant Info */}
         <div className="space-y-4 mb-6">
           <div>
-            <label className="block text-sm font-medium mb-2">Name</label>
+            <label className="block text-sm font-bold text-gray-900 mb-2">Name</label>
             <input
               type="text"
               value={formData.name}
@@ -82,7 +82,7 @@ export default function UploadForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label className="block text-sm font-bold text-gray-900 mb-2">Email</label>
             <input
               type="email"
               value={formData.email}
@@ -93,7 +93,7 @@ export default function UploadForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Phone</label>
+            <label className="block text-sm font-bold text-gray-900 mb-2">Phone</label>
             <input
               type="tel"
               value={formData.phone}
@@ -104,7 +104,7 @@ export default function UploadForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Position Applied</label>
+            <label className="block text-sm font-bold text-gray-900 mb-2">Position Applied</label>
             <input
               type="text"
               value={formData.position_applied}
@@ -178,38 +178,58 @@ function FileInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
+    console.log('File selected:', file?.name, file?.size);
     setFileName(file?.name || null);
     onChange(file);
   };
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-2">
+      <label className="block text-sm font-bold text-gray-900 mb-2">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <div className="flex items-center gap-3">
-        <label className="flex-1 cursor-pointer">
-          <div className="px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition">
-            <div className="text-center">
-              <svg
-                className="mx-auto h-8 w-8 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-              <div className="text-sm text-gray-600 mt-2">
-                {fileName || 'Click to upload PDF'}
-              </div>
-            </div>
+      <div className="relative">
+        <input
+          type="file"
+          accept={accept}
+          onChange={handleChange}
+          required={required}
+          className="hidden"
+          id={`file-${label}`}
+        />
+        <label
+          htmlFor={`file-${label}`}
+          className={`flex items-center justify-center px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition ${
+            fileName
+              ? 'border-green-500 bg-green-50'
+              : 'border-gray-300 bg-white hover:border-blue-500 hover:bg-blue-50'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            {fileName ? (
+              <>
+                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <div>
+                  <div className="text-sm font-semibold text-gray-900">{fileName}</div>
+                  <div className="text-xs text-gray-600">Click to change file</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+                <div className="text-sm font-medium text-gray-900">Click to upload PDF</div>
+              </>
+            )}
           </div>
-          <input type="file" accept={accept} onChange={handleChange} className="hidden" required={required} />
         </label>
       </div>
     </div>
