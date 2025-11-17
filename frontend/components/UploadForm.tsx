@@ -41,9 +41,24 @@ export default function UploadForm() {
       if (formData.position_applied) data.append('position_applied', formData.position_applied);
 
       // Add files
+      console.log('Files being sent:', {
+        resume: files.resume ? `${files.resume.name} (${files.resume.size} bytes)` : 'null',
+        cover_letter: files.cover_letter ? `${files.cover_letter.name} (${files.cover_letter.size} bytes)` : 'null',
+        transcript: files.transcript ? `${files.transcript.name} (${files.transcript.size} bytes)` : 'null'
+      });
+
       if (files.resume) data.append('resume', files.resume);
       if (files.cover_letter) data.append('cover_letter', files.cover_letter);
       if (files.transcript) data.append('transcript', files.transcript);
+
+      console.log('FormData entries:');
+      for (const [key, value] of data.entries()) {
+        if (value instanceof File) {
+          console.log(`  ${key}: File(${value.name}, ${value.size} bytes)`);
+        } else {
+          console.log(`  ${key}: ${value}`);
+        }
+      }
 
       const response = await api.uploadApplicant(data);
       setSuccess(true);

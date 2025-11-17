@@ -12,6 +12,17 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
+    // Log what we received
+    console.log('FormData keys:', Array.from(formData.keys()));
+    console.log('FormData entries:');
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`  ${key}: File(${value.name}, ${value.size} bytes)`);
+      } else {
+        console.log(`  ${key}: ${value}`);
+      }
+    }
+
     // Extract form fields
     const name = (formData.get('name') as string) || null;
     const email = (formData.get('email') as string) || null;
@@ -23,6 +34,12 @@ export async function POST(request: NextRequest) {
     const resume = formData.get('resume') as File | null;
     const coverLetter = formData.get('cover_letter') as File | null;
     const transcript = formData.get('transcript') as File | null;
+
+    console.log('Extracted files:', {
+      resume: resume ? `${resume.name} (${resume.size} bytes)` : 'null',
+      coverLetter: coverLetter ? `${coverLetter.name} (${coverLetter.size} bytes)` : 'null',
+      transcript: transcript ? `${transcript.name} (${transcript.size} bytes)` : 'null'
+    });
 
     if (!resume && !coverLetter && !transcript) {
       return NextResponse.json(
