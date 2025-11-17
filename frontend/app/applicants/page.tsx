@@ -31,7 +31,7 @@ export default function ApplicantsPage() {
   if (applicants.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 mb-4">No applicants yet</p>
+        <p className="text-gray-900 mb-4">No applicants yet</p>
         <Link href="/" className="text-blue-600 hover:underline">
           Upload your first applicant
         </Link>
@@ -47,12 +47,12 @@ export default function ApplicantsPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recommendation</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Position</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Score</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Recommendation</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -60,16 +60,16 @@ export default function ApplicantsPage() {
               <tr key={applicant.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="font-medium text-gray-900">{applicant.name || 'Unnamed'}</div>
-                  <div className="text-sm text-gray-500">{applicant.email}</div>
+                  <div className="text-sm text-gray-900">{applicant.email}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {applicant.position_applied || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {applicant.screening_result ? (
                     <ScoreBadge score={applicant.screening_result.overall_score} />
                   ) : (
-                    <span className="text-gray-400">Pending</span>
+                    <span className="text-gray-900">Pending</span>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -82,10 +82,10 @@ export default function ApplicantsPage() {
                       Reject
                     </span>
                   ) : (
-                    <span className="text-gray-400">-</span>
+                    <span className="text-gray-900">-</span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {new Date(applicant.created_at).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">

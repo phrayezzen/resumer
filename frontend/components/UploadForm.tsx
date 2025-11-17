@@ -15,14 +15,11 @@ export default function UploadForm() {
     position_applied: '',
   });
 
-  const [files, setFiles] = useState({
-    resume: null as File | null,
-    cover_letter: null as File | null,
-    transcript: null as File | null,
-  });
+  const [resume, setResume] = useState<File | null>(null);
 
-  const handleFileChange = (type: 'resume' | 'cover_letter' | 'transcript', file: File | null) => {
-    setFiles({ ...files, [type]: file });
+  const handleFileChange = (file: File | null) => {
+    console.log(`handleFileChange called: file=${file?.name || 'null'}`);
+    setResume(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,24 +37,10 @@ export default function UploadForm() {
       if (formData.phone) data.append('phone', formData.phone);
       if (formData.position_applied) data.append('position_applied', formData.position_applied);
 
-      // Add files
-      console.log('Files being sent:', {
-        resume: files.resume ? `${files.resume.name} (${files.resume.size} bytes)` : 'null',
-        cover_letter: files.cover_letter ? `${files.cover_letter.name} (${files.cover_letter.size} bytes)` : 'null',
-        transcript: files.transcript ? `${files.transcript.name} (${files.transcript.size} bytes)` : 'null'
-      });
-
-      if (files.resume) data.append('resume', files.resume);
-      if (files.cover_letter) data.append('cover_letter', files.cover_letter);
-      if (files.transcript) data.append('transcript', files.transcript);
-
-      console.log('FormData entries:');
-      for (const [key, value] of data.entries()) {
-        if (value instanceof File) {
-          console.log(`  ${key}: File(${value.name}, ${value.size} bytes)`);
-        } else {
-          console.log(`  ${key}: ${value}`);
-        }
+      // Add resume file
+      if (resume) {
+        console.log('Resume being sent:', `${resume.name} (${resume.size} bytes)`);
+        data.append('resume', resume);
       }
 
       const response = await api.uploadApplicant(data);
@@ -65,7 +48,7 @@ export default function UploadForm() {
 
       // Reset form
       setFormData({ name: '', email: '', phone: '', position_applied: '' });
-      setFiles({ resume: null, cover_letter: null, transcript: null });
+      setResume(null);
 
       // Redirect to applicant detail after 1.5 seconds
       setTimeout(() => {
@@ -130,25 +113,13 @@ export default function UploadForm() {
           </div>
         </div>
 
-        {/* File Uploads */}
-        <div className="space-y-4 mb-6">
+        {/* File Upload */}
+        <div className="mb-6">
           <FileInput
             label="Resume (Required)"
             accept=".pdf"
-            onChange={(file) => handleFileChange('resume', file)}
+            onChange={handleFileChange}
             required
-          />
-
-          <FileInput
-            label="Cover Letter (Optional)"
-            accept=".pdf"
-            onChange={(file) => handleFileChange('cover_letter', file)}
-          />
-
-          <FileInput
-            label="Transcript (Optional)"
-            accept=".pdf"
-            onChange={(file) => handleFileChange('transcript', file)}
           />
         </div>
 
@@ -168,7 +139,7 @@ export default function UploadForm() {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={uploading || !files.resume}
+          disabled={uploading || !resume}
           className="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
         >
           {uploading ? 'Uploading & Screening...' : 'Upload & Screen Applicant'}
@@ -228,12 +199,12 @@ function FileInput({
                 </svg>
                 <div>
                   <div className="text-sm font-semibold text-gray-900">{fileName}</div>
-                  <div className="text-xs text-gray-600">Click to change file</div>
+                  <div className="text-xs text-gray-900">Click to change file</div>
                 </div>
               </>
             ) : (
               <>
-                <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-8 w-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

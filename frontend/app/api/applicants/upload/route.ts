@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/store';
-import { extractTextFromPDF, validatePDF } from '@/lib/pdf-utils';
+import { validatePDF } from '@/lib/pdf-utils';
 import OpenAI from 'openai';
 import type { Applicant, Document as AppDocument, ScreeningResult } from '@/types';
 
@@ -30,20 +30,16 @@ export async function POST(request: NextRequest) {
     const position_applied = (formData.get('position_applied') as string) || null;
     const source = (formData.get('source') as string) || 'handshake';
 
-    // Extract files
+    // Extract resume file
     const resume = formData.get('resume') as File | null;
-    const coverLetter = formData.get('cover_letter') as File | null;
-    const transcript = formData.get('transcript') as File | null;
 
-    console.log('Extracted files:', {
+    console.log('Extracted file:', {
       resume: resume ? `${resume.name} (${resume.size} bytes)` : 'null',
-      coverLetter: coverLetter ? `${coverLetter.name} (${coverLetter.size} bytes)` : 'null',
-      transcript: transcript ? `${transcript.name} (${transcript.size} bytes)` : 'null'
     });
 
-    if (!resume && !coverLetter && !transcript) {
+    if (!resume) {
       return NextResponse.json(
-        { error: 'At least one document must be provided' },
+        { error: 'Resume is required' },
         { status: 400 }
       );
     }
@@ -54,64 +50,20 @@ export async function POST(request: NextRequest) {
     let documentsUploaded = 0;
 
     // Process resume
-    let resumeText = '';
-    if (resume) {
-      const buffer = Buffer.from(await resume.arrayBuffer());
-      if (!validatePDF(buffer)) {
-        return NextResponse.json({ error: 'Invalid resume PDF' }, { status: 400 });
-      }
-      resumeText = await extractTextFromPDF(buffer);
-      documents.push({
-        id: documentsUploaded + 1,
-        document_type: 'resume',
-        file_path: `/uploads/${resume.name}`,
-        original_filename: resume.name,
-        extracted_text: resumeText,
-        file_size_bytes: buffer.length,
-        uploaded_at: now,
-      });
-      documentsUploaded++;
+    const buffer = Buffer.from(await resume.arrayBuffer());
+    if (!validatePDF(buffer)) {
+      return NextResponse.json({ error: 'Invalid resume PDF' }, { status: 400 });
     }
 
-    // Process cover letter
-    let coverLetterText = '';
-    if (coverLetter) {
-      const buffer = Buffer.from(await coverLetter.arrayBuffer());
-      if (!validatePDF(buffer)) {
-        return NextResponse.json({ error: 'Invalid cover letter PDF' }, { status: 400 });
-      }
-      coverLetterText = await extractTextFromPDF(buffer);
-      documents.push({
-        id: documentsUploaded + 1,
-        document_type: 'cover_letter',
-        file_path: `/uploads/${coverLetter.name}`,
-        original_filename: coverLetter.name,
-        extracted_text: coverLetterText,
-        file_size_bytes: buffer.length,
-        uploaded_at: now,
-      });
-      documentsUploaded++;
-    }
-
-    // Process transcript
-    let transcriptText = '';
-    if (transcript) {
-      const buffer = Buffer.from(await transcript.arrayBuffer());
-      if (!validatePDF(buffer)) {
-        return NextResponse.json({ error: 'Invalid transcript PDF' }, { status: 400 });
-      }
-      transcriptText = await extractTextFromPDF(buffer);
-      documents.push({
-        id: documentsUploaded + 1,
-        document_type: 'transcript',
-        file_path: `/uploads/${transcript.name}`,
-        original_filename: transcript.name,
-        extracted_text: transcriptText,
-        file_size_bytes: buffer.length,
-        uploaded_at: now,
-      });
-      documentsUploaded++;
-    }
+    documents.push({
+      id: 1,
+      document_type: 'resume',
+      file_path: `/uploads/${resume.name}`,
+      original_filename: resume.name,
+      extracted_text: '', // PDF sent directly to AI
+      file_size_bytes: buffer.length,
+      uploaded_at: now,
+    });
 
     // Create applicant record (without screening first)
     const applicant = store.addApplicant({
@@ -127,11 +79,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Perform AI screening
-    const screeningResult = await screenApplicant(
-      resumeText,
-      coverLetterText,
-      transcriptText
-    );
+    const screeningResult = await screenApplicant(buffer, resume.name);
 
     // Update applicant with screening result
     const updatedApplicant = store.updateApplicant(applicant.id, {
@@ -144,9 +92,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({
-      message: 'Successfully uploaded documents for applicant',
+      message: 'Successfully uploaded resume and completed screening',
       applicant_id: applicant.id,
-      documents_uploaded: documentsUploaded,
+      documents_uploaded: 1,
       screening_started: true,
     });
   } catch (error) {
@@ -159,12 +107,25 @@ export async function POST(request: NextRequest) {
 }
 
 async function screenApplicant(
-  resumeText: string,
-  coverLetterText: string,
-  transcriptText: string
+  resumeBuffer: Buffer,
+  resumeFilename: string
 ): Promise<Omit<ScreeningResult, 'id' | 'applicant_id' | 'screened_at'>> {
   try {
-    const prompt = buildPrompt(resumeText, coverLetterText, transcriptText);
+    // Build content array with PDF file
+    const base64 = resumeBuffer.toString('base64');
+    const content: any[] = [
+      {
+        type: 'file',
+        file: {
+          filename: resumeFilename,
+          file_data: `data:application/pdf;base64,${base64}`,
+        },
+      },
+      {
+        type: 'text',
+        text: 'Please evaluate this job applicant based on the attached resume PDF. Provide a comprehensive evaluation in the JSON format specified in the system prompt.',
+      },
+    ];
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -175,7 +136,7 @@ async function screenApplicant(
         },
         {
           role: 'user',
-          content: prompt,
+          content,
         },
       ],
       response_format: { type: 'json_object' },
@@ -221,7 +182,7 @@ async function screenApplicant(
 function getSystemPrompt(): string {
   return `You are an expert HR professional and recruiter with 15+ years of experience screening job applicants.
 
-Your task is to evaluate job applicants based on their resume, cover letter, and academic transcript. You should assess:
+Your task is to evaluate job applicants based on their resume. You should assess:
 
 1. **Resume Quality** (0-100):
    - Relevant work experience and internships
@@ -229,25 +190,14 @@ Your task is to evaluate job applicants based on their resume, cover letter, and
    - Leadership and extracurricular activities
    - Professionalism and presentation
    - Clear career progression or growth
+   - Education and academic achievements
+   - Technical skills and certifications
 
-2. **Cover Letter Quality** (0-100):
-   - Writing quality and professionalism
-   - Genuine interest and enthusiasm
-   - Company research and fit
-   - Clear communication skills
-   - Specific examples and achievements
-
-3. **Academic Transcript** (0-100):
-   - GPA (consider 3.5+ as strong, 3.0-3.5 as good, below 3.0 as concern)
-   - Relevant coursework for business/professional roles
-   - Consistency of performance
-   - Academic rigor and challenging courses
-   - Upward or stable trend in grades
-
-4. **Overall Assessment**:
-   - Synthesize all factors into an overall score (0-100)
-   - Identify key strengths and weaknesses
-   - Provide clear reasoning for your decision
+2. **Overall Assessment**:
+   - Provide an overall score (0-100) based on the resume
+   - Identify key strengths (3-5 bullet points)
+   - Identify areas for improvement/weaknesses (2-3 bullet points)
+   - Provide clear, detailed reasoning for your decision
    - Recommend whether this candidate should be interviewed
    - Assess your confidence level (high/medium/low)
 
@@ -256,9 +206,9 @@ Be thorough, fair, and objective. Consider that this is for entry-level position
 You MUST respond in valid JSON format with this exact structure:
 {
   "overall_score": <number 0-100>,
-  "resume_score": <number 0-100 or null>,
-  "cover_letter_score": <number 0-100 or null>,
-  "transcript_score": <number 0-100 or null>,
+  "resume_score": <number 0-100>,
+  "cover_letter_score": null,
+  "transcript_score": null,
   "strengths": ["strength 1", "strength 2", "strength 3"],
   "weaknesses": ["weakness 1", "weakness 2"],
   "reasoning": "detailed explanation of scoring decision",
@@ -267,32 +217,3 @@ You MUST respond in valid JSON format with this exact structure:
 }`;
 }
 
-function buildPrompt(
-  resumeText: string,
-  coverLetterText: string,
-  transcriptText: string
-): string {
-  let prompt = 'Please evaluate this job applicant:\n\n';
-
-  if (resumeText) {
-    prompt += `**RESUME:**\n${resumeText.slice(0, 4000)}\n\n`;
-  } else {
-    prompt += '**RESUME:** Not provided\n\n';
-  }
-
-  if (coverLetterText) {
-    prompt += `**COVER LETTER:**\n${coverLetterText.slice(0, 2000)}\n\n`;
-  } else {
-    prompt += '**COVER LETTER:** Not provided\n\n';
-  }
-
-  if (transcriptText) {
-    prompt += `**TRANSCRIPT:**\n${transcriptText.slice(0, 2000)}\n\n`;
-  } else {
-    prompt += '**TRANSCRIPT:** Not provided\n\n';
-  }
-
-  prompt += 'Provide a comprehensive evaluation in the JSON format specified in the system prompt.';
-
-  return prompt;
-}

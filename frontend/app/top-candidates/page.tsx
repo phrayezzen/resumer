@@ -31,7 +31,7 @@ export default function TopCandidatesPage() {
   if (!data || data.candidates.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 mb-4">No screened applicants yet</p>
+        <p className="text-gray-900 mb-4">No screened applicants yet</p>
         <Link href="/" className="text-blue-600 hover:underline">
           Upload applicants to see top candidates
         </Link>
@@ -43,7 +43,7 @@ export default function TopCandidatesPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Top {data.top_percentage}% Candidates</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-900 mt-2">
           Showing {data.candidates.length} of {data.total_count} screened applicants
         </p>
       </div>
@@ -60,28 +60,28 @@ export default function TopCandidatesPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg font-bold">{applicant.name || 'Unnamed'}</h3>
-                  <p className="text-sm text-gray-600">{applicant.email}</p>
+                  <p className="text-sm text-gray-900">{applicant.email}</p>
                   {applicant.position_applied && (
-                    <p className="text-sm text-gray-500 mt-1">{applicant.position_applied}</p>
+                    <p className="text-sm text-gray-900 mt-1">{applicant.position_applied}</p>
                   )}
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold text-blue-600">{screening.overall_score}</div>
-                  <div className="text-xs text-gray-500">Score</div>
+                  <div className="text-xs text-gray-900">Score</div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Resume:</span>
+                  <span className="text-gray-900">Resume:</span>
                   <span className="font-medium">{screening.resume_score || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Cover Letter:</span>
+                  <span className="text-gray-900">Cover Letter:</span>
                   <span className="font-medium">{screening.cover_letter_score || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Transcript:</span>
+                  <span className="text-gray-900">Transcript:</span>
                   <span className="font-medium">{screening.transcript_score || 'N/A'}</span>
                 </div>
               </div>

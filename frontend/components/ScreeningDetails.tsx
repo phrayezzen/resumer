@@ -8,7 +8,7 @@ export default function ScreeningDetails({ applicant }: { applicant: Applicant }
   if (!screening) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">No screening results available yet.</p>
+        <p className="text-gray-900">No screening results available yet.</p>
       </div>
     );
   }
@@ -35,9 +35,9 @@ export default function ScreeningDetails({ applicant }: { applicant: Applicant }
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">{applicant.name || 'Unnamed Applicant'}</h1>
-            <p className="text-gray-600 mt-1">{applicant.email}</p>
+            <p className="text-gray-900 mt-1">{applicant.email}</p>
             {applicant.position_applied && (
-              <p className="text-sm text-gray-500 mt-1">Applied for: {applicant.position_applied}</p>
+              <p className="text-sm text-gray-900 mt-1">Applied for: {applicant.position_applied}</p>
             )}
           </div>
           <div className="text-right">
@@ -50,7 +50,7 @@ export default function ScreeningDetails({ applicant }: { applicant: Applicant }
                 ✗ NOT RECOMMENDED
               </span>
             )}
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-gray-900 mt-2">
               Confidence: {screening.confidence_level.toUpperCase()}
             </p>
           </div>
@@ -70,7 +70,7 @@ export default function ScreeningDetails({ applicant }: { applicant: Applicant }
               <div className={`text-4xl font-bold ${getScoreColor(screening.overall_score)}`}>
                 {screening.overall_score}
               </div>
-              <div className="text-sm text-gray-600">/ 100</div>
+              <div className="text-sm text-gray-900">/ 100</div>
             </div>
           </div>
 
@@ -129,7 +129,7 @@ export default function ScreeningDetails({ applicant }: { applicant: Applicant }
       </div>
 
       {/* Metadata */}
-      <div className="bg-gray-50 rounded-lg p-6 text-sm text-gray-600">
+      <div className="bg-gray-50 rounded-lg p-6 text-sm text-gray-900">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <span className="font-medium">Screened At:</span>{' '}
@@ -162,15 +162,15 @@ function ScoreCard({
   if (score === null) {
     return (
       <div className="text-center p-4 bg-gray-50 rounded-lg">
-        <div className="text-sm text-gray-500 font-medium">{label}</div>
-        <div className="text-gray-400 mt-1">N/A</div>
+        <div className="text-sm text-gray-900 font-medium">{label}</div>
+        <div className="text-gray-900 mt-1">N/A</div>
       </div>
     );
   }
 
   return (
     <div className="text-center p-4 bg-gray-50 rounded-lg">
-      <div className="text-sm text-gray-600 font-medium">{label}</div>
+      <div className="text-sm text-gray-900 font-medium">{label}</div>
       <div className={`text-2xl font-bold mt-1 ${getScoreColor(score)}`}>{score}</div>
     </div>
   );

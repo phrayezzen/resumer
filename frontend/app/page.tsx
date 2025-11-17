@@ -5,7 +5,7 @@ export default function Home() {
     <div>
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">Upload Resume for AI Screening</h1>
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-gray-900">
           Upload applicant documents and get instant AI-powered screening results
         </p>
       </div>

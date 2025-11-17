@@ -43,7 +43,7 @@ export default function RootLayout({
           </main>
 
           {/* Footer */}
-          <footer className="mt-12 py-6 text-center text-sm text-gray-500">
+          <footer className="mt-12 py-6 text-center text-sm text-gray-900">
             <p>Powered by OpenAI GPT-4o | Built with Next.js & Vercel</p>
           </footer>
         </div>
