@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Perform AI screening
-    const screeningResult = await screenApplicant(buffer, resume.name);
+    const screeningResult = await screenApplicant(buffer, resume.name, position_applied);
 
     // Update applicant with screening result
     const updatedApplicant = store.updateApplicant(applicant.id, {
@@ -108,11 +108,19 @@ export async function POST(request: NextRequest) {
 
 async function screenApplicant(
   resumeBuffer: Buffer,
-  resumeFilename: string
+  resumeFilename: string,
+  positionApplied: string | null
 ): Promise<Omit<ScreeningResult, 'id' | 'applicant_id' | 'screened_at'>> {
   try {
     // Build content array with PDF file
     const base64 = resumeBuffer.toString('base64');
+
+    let promptText = 'Please evaluate this job applicant based on the attached resume PDF.';
+    if (positionApplied) {
+      promptText += `\n\nThe candidate is applying for the position: **${positionApplied}**\n\nPlease assess how well their resume aligns with this specific role.`;
+    }
+    promptText += '\n\nProvide a comprehensive evaluation in the JSON format specified in the system prompt.';
+
     const content: any[] = [
       {
         type: 'file',
@@ -123,7 +131,7 @@ async function screenApplicant(
       },
       {
         type: 'text',
-        text: 'Please evaluate this job applicant based on the attached resume PDF. Provide a comprehensive evaluation in the JSON format specified in the system prompt.',
+        text: promptText,
       },
     ];
 
@@ -186,22 +194,23 @@ Your task is to evaluate job applicants based on their resume. You should assess
 
 1. **Resume Quality** (0-100):
    - Relevant work experience and internships
-   - Skills alignment with typical entry-level professional roles
+   - Skills alignment with the specific position they're applying for (if provided)
    - Leadership and extracurricular activities
    - Professionalism and presentation
    - Clear career progression or growth
    - Education and academic achievements
    - Technical skills and certifications
+   - How well their background fits the target role
 
 2. **Overall Assessment**:
-   - Provide an overall score (0-100) based on the resume
-   - Identify key strengths (3-5 bullet points)
+   - Provide an overall score (0-100) based on the resume and role fit
+   - Identify key strengths (3-5 bullet points) - especially those relevant to the target position
    - Identify areas for improvement/weaknesses (2-3 bullet points)
-   - Provide clear, detailed reasoning for your decision
+   - Provide clear, detailed reasoning for your decision, including role alignment
    - Recommend whether this candidate should be interviewed
    - Assess your confidence level (high/medium/low)
 
-Be thorough, fair, and objective. Consider that this is for entry-level positions targeting recent undergraduates.
+Be thorough, fair, and objective. Consider that this is for entry-level positions targeting recent undergraduates. If a specific position is mentioned, pay special attention to how well the candidate's experience and skills match that role.
 
 You MUST respond in valid JSON format with this exact structure:
 {
