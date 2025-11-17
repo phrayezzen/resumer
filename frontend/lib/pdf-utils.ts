@@ -4,8 +4,8 @@
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    // Dynamic import for pdf-parse (CommonJS module)
-    const pdfParse = (await import('pdf-parse')).default;
+    // Dynamic import for pdf-parse
+    const pdfParse = await import('pdf-parse') as any;
     const data = await pdfParse(buffer);
     return data.text;
   } catch (error) {

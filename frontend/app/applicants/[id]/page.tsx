@@ -9,16 +9,25 @@ import type { Applicant } from '@/types';
 
 export default function ApplicantDetailPage() {
   const params = useParams();
-  const id = parseInt(params.id as string);
+  const [id, setId] = useState<number | null>(null);
   const [applicant, setApplicant] = useState<Applicant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadApplicant();
+    if (params.id) {
+      setId(parseInt(params.id as string));
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    if (id !== null) {
+      loadApplicant();
+    }
   }, [id]);
 
   const loadApplicant = async () => {
+    if (id === null) return;
     try {
       const data = await api.getApplicant(id);
       setApplicant(data);
